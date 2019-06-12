@@ -127,6 +127,11 @@ public class TestSummaryPrinter {
       boolean withConfigurationName) {
     BlazeTestStatus status = summary.getStatus();
     // Skip output for tests that failed to build.
+    terminalPrinter.print("Fuck!" + summary.getSuccessTestCases());
+    for (TestCase tcase : summary.getSuccessTestCases()) {
+      TestSummaryPrinter.printSuccessTestCase(terminalPrinter, tcase);
+    }
+
     if (status == BlazeTestStatus.FAILED_TO_BUILD
         || status == BlazeTestStatus.BLAZE_HALTED_BEFORE_TESTING) {
       return;
@@ -213,6 +218,29 @@ public class TestSummaryPrinter {
         + testCase.getName()
         + timeSummary
         + "\n");
+  }
+
+  static void printSuccessTestCase(
+      AnsiTerminalPrinter terminalPrinter, TestCase testCase) {
+    String timeSummary;
+    if (testCase.hasRunDurationMillis()) {
+      timeSummary = " ("
+          + timeInSec(testCase.getRunDurationMillis(), TimeUnit.MILLISECONDS)
+          + ")";
+    } else {
+      timeSummary = "";
+    }
+
+    terminalPrinter.print(
+        "    "
+            + Mode.INFO
+            + Strings.padEnd(testCase.getStatus().toString(), 8, ' ')
+            + Mode.DEFAULT
+            + testCase.getClassName()
+            + "."
+            + testCase.getName()
+            + timeSummary
+            + "\n");
   }
 
   /**

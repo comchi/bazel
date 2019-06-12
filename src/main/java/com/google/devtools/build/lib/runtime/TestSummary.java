@@ -81,6 +81,9 @@ public class TestSummary implements Comparable<TestSummary>, BuildEventWithOrder
         addFailedTestCases(existingSummary.getFailedTestCases(),
             existingSummary.getFailedTestCasesStatus());
       }
+      if (existingSummary.successfulTestCases != null) {
+        addSuccessTestCases(existingSummary.getSuccessTestCases());
+      }
 
       addTestTimes(existingSummary.testTimes);
       addWarnings(existingSummary.warnings);
@@ -163,6 +166,30 @@ public class TestSummary implements Comparable<TestSummary>, BuildEventWithOrder
       return this;
     }
 
+    public Builder collectSuccessTests(TestCase testCase) {
+      if (testCase == null) {
+        return this;
+      }
+
+      if (testCase.getChildCount() > 0) {
+        // This is a non-leaf result. Traverse its children, but do not add its
+        // name to the output list. It should not contain any 'failure' or
+        // 'error' tags, but we want to be lax here, because the syntax of the
+        // test.xml file is also lax.
+        for (TestCase child : testCase.getChildList()) {
+          collectSuccessTests(child);
+        }
+      } else {
+        // This is a leaf result. If it passed, don't add it.
+        if (testCase.getStatus() != TestCase.Status.PASSED) {
+          return this;
+        }
+
+        this.summary.successfulTestCases.add(testCase);
+      }
+      return this;
+    }
+
     public Builder collectFailedTests(TestCase testCase) {
       if (testCase == null) {
         summary.failedTestCasesStatus = FailedTestCasesStatus.NOT_AVAILABLE;
@@ -238,6 +265,28 @@ public class TestSummary implements Comparable<TestSummary>, BuildEventWithOrder
       }
 
       summary.failedTestCases = new ArrayList<>(allCases.values());
+      return this;
+    }
+
+    public Builder addSuccessTestCases(List<TestCase> testCases) {
+      checkMutation(testCases);
+
+      if (testCases.isEmpty()) {
+        return this;
+      }
+
+      // union of summary.failedTestCases, testCases
+      Map<String, TestCase> allCases = new TreeMap<>();
+      if (summary.successfulTestCases != null) {
+        for (TestCase detail : summary.successfulTestCases) {
+          allCases.put(detail.getClassName() + "." + detail.getName(), detail);
+        }
+      }
+      for (TestCase detail : testCases) {
+        allCases.put(detail.getClassName() + "." + detail.getName(), detail);
+      }
+
+      summary.successfulTestCases = new ArrayList<>(allCases.values());
       return this;
     }
 
@@ -348,6 +397,7 @@ public class TestSummary implements Comparable<TestSummary>, BuildEventWithOrder
   private boolean actionRan;
   private boolean ranRemotely;
   private boolean wasUnreportedWrongSize;
+  private List<TestCase> successfulTestCases = new ArrayList<>();
   private List<TestCase> failedTestCases = new ArrayList<>();
   private List<Path> passedLogs = new ArrayList<>();
   private List<Path> failedLogs = new ArrayList<>();
@@ -432,6 +482,10 @@ public class TestSummary implements Comparable<TestSummary>, BuildEventWithOrder
 
   public List<TestCase> getFailedTestCases() {
     return failedTestCases;
+  }
+
+  public List<TestCase> getSuccessTestCases() {
+    return successfulTestCases;
   }
 
   public int getTotalTestCases() {

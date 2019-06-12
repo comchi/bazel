@@ -133,15 +133,15 @@ public class TerminalTestResultNotifier implements TestResultNotifier {
   private void printDetailedTestResultSummary(Set<TestSummary> summaries) {
     boolean withConfig = duplicateLabels(summaries);
     for (TestSummary summary : summaries) {
-      if (summary.getStatus() != BlazeTestStatus.PASSED) {
+      // if (summary.getStatus() != BlazeTestStatus.PASSED) {
         TestSummaryPrinter.print(
             summary,
             printer,
             testLogPathFormatter,
-            summaryOptions.verboseSummary,
             true,
-            withConfig);
-      }
+            true,
+            true);
+      // }
     }
   }
 

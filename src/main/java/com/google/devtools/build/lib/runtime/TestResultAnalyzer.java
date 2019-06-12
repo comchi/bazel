@@ -262,6 +262,7 @@ public class TestResultAnalyzer {
         .addTestTimes(result.getData().getTestTimesList())
         .addWarnings(result.getData().getWarningList())
         .collectFailedTests(result.getData().getTestCase())
+        .collectSuccessTests(result.getData().getTestCase())
         .countTotalTestCases(result.getData().getTestCase())
         .setRanRemotely(result.getData().getIsRemoteStrategy());
 
