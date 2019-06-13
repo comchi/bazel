@@ -111,6 +111,7 @@ public class TestSummaryPrinter {
         testLogPathFormatter,
         verboseSummary,
         printFailedTestCases,
+        false,
         false);
   }
 
@@ -124,6 +125,7 @@ public class TestSummaryPrinter {
       TestLogPathFormatter testLogPathFormatter,
       boolean verboseSummary,
       boolean printFailedTestCases,
+      boolean printSucceededTestCases,
       boolean withConfigurationName) {
     BlazeTestStatus status = summary.getStatus();
     // Skip output for tests that failed to build.
@@ -160,6 +162,12 @@ public class TestSummaryPrinter {
               + " cases incomplete)\n"
               + Mode.DEFAULT);
         }
+      }
+    }
+
+    if (printSucceededTestCases) {
+      for (TestCase testCase: summary.getSucceededTestCases()) {
+        TestSummaryPrinter.printTestCase(terminalPrinter, testCase);
       }
     }
 
@@ -203,9 +211,10 @@ public class TestSummaryPrinter {
       timeSummary = "";
     }
 
+    Mode coloringMode = testCase.getStatus() == TestCase.Status.PASSED ? Mode.INFO : Mode.ERROR;
     terminalPrinter.print(
         "    "
-        + Mode.ERROR
+        + coloringMode
         + Strings.padEnd(testCase.getStatus().toString(), 8, ' ')
         + Mode.DEFAULT
         + testCase.getClassName()

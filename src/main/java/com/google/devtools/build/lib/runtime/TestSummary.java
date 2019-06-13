@@ -163,31 +163,31 @@ public class TestSummary implements Comparable<TestSummary>, BuildEventWithOrder
       return this;
     }
 
-    public Builder collectFailedTests(TestCase testCase) {
+    public Builder collectTests(TestCase testCase) {
       if (testCase == null) {
         summary.failedTestCasesStatus = FailedTestCasesStatus.NOT_AVAILABLE;
         return this;
       }
       summary.failedTestCasesStatus = FailedTestCasesStatus.FULL;
-      return collectFailedTestCases(testCase);
+      return collectTestCases(testCase);
     }
 
-    private Builder collectFailedTestCases(TestCase testCase) {
+    private Builder collectTestCases(TestCase testCase) {
       if (testCase.getChildCount() > 0) {
         // This is a non-leaf result. Traverse its children, but do not add its
         // name to the output list. It should not contain any 'failure' or
         // 'error' tags, but we want to be lax here, because the syntax of the
         // test.xml file is also lax.
         for (TestCase child : testCase.getChildList()) {
-          collectFailedTestCases(child);
+          collectTestCases(child);
         }
       } else {
         // This is a leaf result. If it passed, don't add it.
         if (testCase.getStatus() == TestCase.Status.PASSED) {
-          return this;
+        	this.summary.succeededTestCases.add(testCase);
+        } else {
+          this.summary.failedTestCases.add(testCase);
         }
-
-        this.summary.failedTestCases.add(testCase);
       }
       return this;
     }
@@ -349,6 +349,7 @@ public class TestSummary implements Comparable<TestSummary>, BuildEventWithOrder
   private boolean ranRemotely;
   private boolean wasUnreportedWrongSize;
   private List<TestCase> failedTestCases = new ArrayList<>();
+  private List<TestCase> succeededTestCases = new ArrayList<>();
   private List<Path> passedLogs = new ArrayList<>();
   private List<Path> failedLogs = new ArrayList<>();
   private List<String> warnings = new ArrayList<>();
@@ -432,6 +433,10 @@ public class TestSummary implements Comparable<TestSummary>, BuildEventWithOrder
 
   public List<TestCase> getFailedTestCases() {
     return failedTestCases;
+  }
+
+  public List<TestCase> getSucceededTestCases() {
+    return succeededTestCases;
   }
 
   public int getTotalTestCases() {

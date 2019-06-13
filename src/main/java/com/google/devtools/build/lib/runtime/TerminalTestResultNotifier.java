@@ -13,9 +13,6 @@
 // limitations under the License.
 package com.google.devtools.build.lib.runtime;
 
-import static com.google.devtools.build.lib.exec.TestStrategy.TestSummaryFormat.DETAILED;
-import static com.google.devtools.build.lib.exec.TestStrategy.TestSummaryFormat.TESTCASE;
-
 import com.google.devtools.build.lib.analysis.test.TestResult;
 import com.google.devtools.build.lib.cmdline.Label;
 import com.google.devtools.build.lib.exec.ExecutionOptions;
@@ -35,6 +32,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import static com.google.devtools.build.lib.exec.TestStrategy.TestSummaryFormat.*;
 
 /**
  * Prints the test results to a terminal.
@@ -130,16 +129,17 @@ public class TerminalTestResultNotifier implements TestResultNotifier {
   /**
    * Prints a test result summary that contains only failed tests.
    */
-  private void printDetailedTestResultSummary(Set<TestSummary> summaries) {
+  private void printDetailedTestResultSummary(Set<TestSummary> summaries, boolean printSucceededTests) {
     boolean withConfig = duplicateLabels(summaries);
     for (TestSummary summary : summaries) {
-      if (summary.getStatus() != BlazeTestStatus.PASSED) {
+      if (printSucceededTests || summary.getStatus() != BlazeTestStatus.PASSED) {
         TestSummaryPrinter.print(
             summary,
             printer,
             testLogPathFormatter,
             summaryOptions.verboseSummary,
             true,
+            printSucceededTests,
             withConfig);
       }
     }
@@ -159,6 +159,7 @@ public class TerminalTestResultNotifier implements TestResultNotifier {
             printer,
             testLogPathFormatter,
             summaryOptions.verboseSummary,
+            false,
             false,
             withConfig);
       }
@@ -220,8 +221,12 @@ public class TerminalTestResultNotifier implements TestResultNotifier {
 
     TestSummaryFormat testSummaryFormat = options.getOptions(ExecutionOptions.class).testSummary;
     switch (testSummaryFormat) {
+      case FULL:
+        printDetailedTestResultSummary(summaries, /* printSucceededTests */ true);
+        break;
+
       case DETAILED:
-        printDetailedTestResultSummary(summaries);
+        printDetailedTestResultSummary(summaries, /* printSucceededTests */ false);
         break;
 
       case SHORT:
@@ -254,7 +259,7 @@ public class TerminalTestResultNotifier implements TestResultNotifier {
 
   private void printStats(TestResultStats stats) {
     TestSummaryFormat testSummaryFormat = options.getOptions(ExecutionOptions.class).testSummary;
-    if (testSummaryFormat == DETAILED || testSummaryFormat == TESTCASE) {
+    if (testSummaryFormat == DETAILED || testSummaryFormat == TESTCASE || testSummaryFormat == FULL) {
       int passCount = stats.totalTestCases - stats.totalFailedTestCases;
       String message =
           String.format(

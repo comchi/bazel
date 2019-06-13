@@ -125,7 +125,24 @@ public final class TerminalTestResultNotifierTest {
 
   @Test
   public void detailedOption_allPass() throws Exception {
-    testSummaryFormat = TestSummaryFormat.DETAILED;
+    testSummaryFormat = TestSummaryFormat.DETAILED; // this is not udner test
+    numFailedTestCases = 0;
+    numTotalTestCases = 10;
+    targetStatus = BlazeTestStatus.PASSED;
+
+    printTestCaseSummary();
+
+    String printed = getPrintedMessage();
+    assertThat(printed).contains(info("10 passing"));
+    assertThat(printed).contains("0 failing");
+    assertThat(printed).contains("out of 10 test cases");
+    assertThat(printed).doesNotContain(ALL_TEST_CASES_PASSED_BUT_TARGET_FAILED_DISCLAIMER);
+    assertThat(printed).doesNotContain(AnsiTerminalPrinter.Mode.ERROR.toString());
+  }
+
+  @Test
+  public void fullOption_sameOutputAsDetail() throws Exception {
+    testSummaryFormat = TestSummaryFormat.FULL;
     numFailedTestCases = 0;
     numTotalTestCases = 10;
     targetStatus = BlazeTestStatus.PASSED;
