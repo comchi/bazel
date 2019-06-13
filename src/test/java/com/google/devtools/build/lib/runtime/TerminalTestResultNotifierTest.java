@@ -142,7 +142,7 @@ public final class TerminalTestResultNotifierTest {
 
   @Test
   public void fullOption_sameOutputAsDetail() throws Exception {
-    testSummaryFormat = TestSummaryFormat.FULL;
+    testSummaryFormat = TestSummaryFormat.VERBOSE;
     numFailedTestCases = 0;
     numTotalTestCases = 10;
     targetStatus = BlazeTestStatus.PASSED;

@@ -221,7 +221,7 @@ public class TerminalTestResultNotifier implements TestResultNotifier {
 
     TestSummaryFormat testSummaryFormat = options.getOptions(ExecutionOptions.class).testSummary;
     switch (testSummaryFormat) {
-      case FULL:
+      case VERBOSE:
         printDetailedTestResultSummary(summaries, /* printSucceededTests */ true);
         break;
 
@@ -259,7 +259,7 @@ public class TerminalTestResultNotifier implements TestResultNotifier {
 
   private void printStats(TestResultStats stats) {
     TestSummaryFormat testSummaryFormat = options.getOptions(ExecutionOptions.class).testSummary;
-    if (testSummaryFormat == DETAILED || testSummaryFormat == TESTCASE || testSummaryFormat == FULL) {
+    if (testSummaryFormat == DETAILED || testSummaryFormat == TESTCASE || testSummaryFormat == VERBOSE) {
       int passCount = stats.totalTestCases - stats.totalFailedTestCases;
       String message =
           String.format(
